@@ -1,6 +1,5 @@
 {
   "manifest_version": 1,
-  "id": "com.veurpg.ficha",
   "name": "Ficha VEU RPG",
   "version": "1.0.0",
   "icon": "/icon.svg",
