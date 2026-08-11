@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha do Personagem</title>
+    <style>
+        :root {
+            --bg-principal: #202225;
+            --bg-campos: #40444b;
+            --bg-bordas: #2f3136;
+            --texto-claro: #ffffff;
+            --texto-mutado: #b9bbbe;
+            --accent-azul: #5865f2;
+            --accent-verde: #43b581;
+            --accent-vermelho: #ed4245;
+            --accent-amarelo: #faa61a;
+            --accent-roxo: #9b59b6;
+            --accent-ciano: #00bcd4;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-principal);
+            color: var(--texto-claro);
+            padding: 15px;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        /* PAINEL DO MESTRE */
+        #gm-panel {
+            display: none;
+            background: rgba(155, 89, 182, 0.15);
+            border: 1px solid var(--accent-roxo);
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            border-left: 4px solid var(--accent-roxo);
+        }
+        #gm-panel label {
+            color: var(--texto-claro);
+            font-size: 13px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        #gm-player-select {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg-principal);
+            color: var(--texto-claro);
+            border: 1px solid var(--accent-roxo);
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        #gm-player-select:focus { outline: none; box-shadow: 0 0 0 2px rgba(155, 89, 182, 0.5); }
+
+        h4 {
+            margin: 15px 0 10px 0;
+            border-bottom: 1px solid var(--bg-campos);
+            padding-bottom: 5px;
+            color: var(--accent-azul);
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .grid-cabecalho { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 11px; color: var(--texto-mutado); margin-bottom: 4px; text-transform: uppercase; font-weight: bold; }
+
+        input[type="text"], textarea, select {
+            background: var(--bg-campos); border: 1px solid var(--bg-bordas); border-radius: 4px;
+            color: var(--texto-claro); padding: 8px; font-size: 13px; box-sizing: border-box; width: 100%;
+        }
+        input:focus, textarea:focus, select:focus { outline: 1px solid var(--accent-azul); }
+
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+        .stepper { display: flex; width: 100%; border: 1px solid var(--bg-bordas); border-radius: 4px; overflow: hidden; background: var(--bg-campos); }
+        .stepper input { flex: 1; width: 100%; border: none; background: transparent; color: var(--texto-claro); text-align: center; font-size: 14px; font-weight: bold; padding: 6px 0; }
+        .btn-stepper { width: 32px; background: rgba(0, 0, 0, 0.2); border: none; color: var(--texto-claro); font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-stepper:hover { background: var(--accent-azul); }
+
+        .atributos-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 15px; }
+        .atributo-box { flex: 1 1 30%; display: flex; flex-direction: column; align-items: center; background: transparent; box-sizing: border-box; }
+        .atributo-box label { margin-bottom: 6px; }
+
+        .status-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+        .texto-medio-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        textarea { resize: vertical; font-family: inherit; }
+
+        .main-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid var(--accent-azul); padding-bottom: 5px; }
+        .main-tab-btn { flex: 1; background: transparent; border: none; color: var(--texto-mutado); font-size: 14px; font-weight: bold; text-transform: uppercase; cursor: pointer; padding: 12px; border-radius: 4px 4px 0 0; transition: 0.2s; }
+        .main-tab-btn:hover { color: var(--texto-claro); background: rgba(88, 101, 242, 0.2); }
+        .main-tab-btn.active { color: var(--texto-claro); background: var(--accent-azul); }
+        .main-tab-content { display: none; }
+        .main-tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+        .tabs { display: flex; gap: 5px; margin-top: 15px; margin-bottom: 10px; border-bottom: 2px solid var(--bg-campos); padding-bottom: 5px; }
+        .tab-btn { flex: 1; background: transparent; border: none; color: var(--texto-mutado); font-size: 12px; font-weight: bold; text-transform: uppercase; cursor: pointer; padding: 10px; border-radius: 4px; transition: 0.2s; }
+        .tab-btn:hover { color: var(--texto-claro); background: rgba(255, 255, 255, 0.05); }
+        .tab-btn.active { color: var(--texto-claro); background: var(--accent-azul); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .pericias-container { display: grid; grid-template-columns: 1fr; gap: 6px; max-height: 450px; overflow-y: auto; padding-right: 5px; }
+        .pericia-item { display: flex; justify-content: space-between; align-items: center; background: #2f3136; padding: 6px 10px; border-radius: 4px; border-left: 3px solid var(--accent-azul); transition: background-color 0.3s ease; }
+        .pericia-item label { margin: 0; font-size: 12px; color: var(--texto-claro); text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+        .pericia-stepper { width: 90px; background: rgba(0, 0, 0, 0.2); }
+
+        .inventario-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        .inventario-item { display: flex; gap: 10px; align-items: center; background: #2f3136; padding: 8px 10px; border-radius: 4px; border-left: 3px solid var(--accent-verde); }
+        .inventario-item input[type="text"] { flex: 1; background: var(--bg-campos); border: 1px solid var(--bg-bordas); }
+        .inventario-item input[type="text"]:focus { outline: 1px solid var(--accent-verde); }
+        .inventario-stepper { width: 110px; background: rgba(0, 0, 0, 0.2); }
+
+        /* ESTILOS DO DASHBOARD GM */
+        #gm-dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .gm-card { background: #2f3136; padding: 12px; border-radius: 4px; border-left: 4px solid var(--accent-roxo); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .gm-card-header { font-weight: bold; font-size: 14px; margin-bottom: 10px; color: var(--accent-roxo); border-bottom: 1px solid var(--bg-campos); padding-bottom: 5px; }
+        .gm-card-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; }
+        .gm-stat-row { display: flex; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 3px; }
+
+        .actions { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        button.btn-acao { width: 100%; padding: 12px; border: none; border-radius: 4px; background: var(--accent-azul); color: white; cursor: pointer; font-weight: bold; font-size: 12px; text-transform: uppercase; }
+        button.btn-acao:hover { background: #4752c4; }
+        .btn-upload { background: var(--accent-verde) !important; }
+        .btn-upload:hover { background: #3ca374 !important; }
+        .btn-danger { background: var(--accent-vermelho) !important; }
+        .btn-danger:hover { background: #c9383b !important; }
+        #file-input { display: none; }
+        
+        .save-indicator { text-align: center; font-size: 10px; color: var(--accent-verde); margin-top: 5px; opacity: 0; transition: opacity 0.5s; }
+        .anomalia-indicador { flex: 2; background: rgba(0,0,0,0.2); color: #b9bbbe; text-align: center; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+    <!-- PAINEL EXCLUSIVO DO MESTRE -->
+    <div id="gm-panel">
+        <label>👑 MODO MESTRE: Monitoramento de Fichas</label>
+        <select id="gm-player-select" onchange="gmSelecionarJogador()">
+            <option value="">-- Sua Própria Ficha --</option>
+        </select>
+    </div>
+
+    <!-- ABAS PRINCIPAIS -->
+    <div class="main-tabs">
+        <button class="main-tab-btn active" onclick="mudarAbaPrincipal('principal')" id="btn-main-principal">Principal</button>
+        <button class="main-tab-btn" onclick="mudarAbaPrincipal('inventario')" id="btn-main-inventario">Inventário</button>
+        <!-- Aba exclusiva do GM, oculta por padrão -->
+        <button class="main-tab-btn" onclick="mudarAbaPrincipal('dashboard')" id="btn-main-dashboard" style="display: none; color: var(--accent-roxo);">Visão GM</button>
+    </div>
+
+    <!-- ABA: VISÃO GERAL DO MESTRE (DASHBOARD) -->
+    <div id="main-dashboard" class="main-tab-content">
+        <h4 style="color: var(--accent-roxo); border-bottom-color: var(--accent-roxo);">Status da Equipe (Ao Vivo)</h4>
+        <div id="gm-dashboard-grid">
+            <!-- Os cards dos jogadores serão injetados aqui via JavaScript -->
+        </div>
+    </div>
+
+    <!-- ABA: PRINCIPAL -->
+    <div id="main-principal" class="main-tab-content active">
+        <h4>Informações Básicas</h4>
+        <div class="grid-cabecalho">
+            <div class="form-group"><label>Nome do Personagem</label><input type="text" id="char-nome"></div>
+            <div class="form-group">
+                <label>Classe</label>
+                <select id="char-classe" onchange="atualizarStatusClasse()">
+                    <option value="">Selecione...</option>
+                    <option value="Brutalista">Brutalista</option>
+                    <option value="Vorpal">Vorpal</option>
+                    <option value="Intelectual">Intelectual</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Nível (Máx: 8)</label>
+                <div class="stepper">
+                    <button type="button" class="btn-stepper" onclick="alterarValor('char-nivel', -1)">-</button>
+                    <input type="number" id="char-nivel" value="1">
+                    <button type="button" class="btn-stepper" onclick="alterarValor('char-nivel', 1)">+</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Idade</label>
+                <div class="stepper">
+                    <button type="button" class="btn-stepper" onclick="alterarValor('char-idade', -1)">-</button>
+                    <input type="number" id="char-idade" value="0">
+                    <button type="button" class="btn-stepper" onclick="alterarValor('char-idade', 1)">+</button>
+                </div>
+            </div>
+            <div class="form-group"><label>Tamanho</label><input type="text" id="char-tamanho"></div>
+            <div class="form-group"><label>Objeto de Vínculo</label><input type="text" id="char-vinculo"></div>
+        </div>
+
+        <h4>
+            Atributos Base
+            <span id="visor-pontos" style="font-size: 11px; color: var(--accent-verde);">Pontos: 10 / 10</span>
+        </h4>
+        <div class="atributos-container">
+            <div class="atributo-box"><label>Vigor</label><div class="stepper"><button type="button" class="btn-stepper" onclick="alterarValor('attr-vigor', -1)">-</button><input type="number" id="attr-vigor" value="0"><button type="button" class="btn-stepper" onclick="attrVigorMudou(1)">+</button></div></div>
+            <div class="atributo-box"><label>Força</label><div class="stepper"><button type="button" class="btn-stepper" onclick="alterarValor('attr-forca', -1)">-</button><input type="number" id="attr-forca" value="0"><button type="button" class="btn-stepper" onclick="alterarValor('attr-forca', 1)">+</button></div></div>
+            <div class="atributo-box"><label>Agilidade</label><div class="stepper"><button type="button" class="btn-stepper" onclick="alterarValor('attr-agilidade', -1)">-</button><input type="number" id="attr-agilidade" value="0"><button type="button" class="btn-stepper" onclick="alterarValor('attr-agilidade', 1)">+</button></div></div>
+            <div class="atributo-box"><label>Intelecto</label><div class="stepper"><button type="button" class="btn-stepper" onclick="alterarValor('attr-intelecto', -1)">-</button><input type="number" id="attr-intelecto" value="0"><button type="button" class="btn-stepper" onclick="alterarValor('attr-intelecto', 1)">+</button></div></div>
+            <div class="atributo-box"><label>Presença</label><div class="stepper"><button type="button" class="btn-stepper" onclick="alterarValor('attr-presenca', -1)">-</button><input type="number" id="attr-presenca" value="0"><button type="button" class="btn-stepper" onclick="attrPresencaMudou(1)">+</button></div></div>
+        </div>
+
+        <h4>Atributos Anômalos</h4>
+        <p style="font-size: 11px; color: var(--texto-mutado); margin-top: -5px; margin-bottom: 15px;">
+            Escala: -1 a 5. Compartilha a mesma reserva de pontos dos Atributos Base.
+        </p>
+        <div class="atributos-container" style="flex-direction: column; gap: 8px;">
+            <div class="form-group" style="background: #2f3136; padding: 8px; border-radius: 4px; border-left: 3px solid var(--accent-vermelho);">
+                <label>Poder (Afeta PE e Dano Bruto)</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="stepper" style="flex: 1;"><button type="button" class="btn-stepper" onclick="alterarAnomalia('anomalia-poder', -1)">-</button><input type="number" id="anomalia-poder" value="0" min="-1" max="5"><button type="button" class="btn-stepper" onclick="alterarAnomalia('anomalia-poder', 1)">+</button></div>
+                    <input type="text" id="visor-poder" class="anomalia-indicador" readonly value="Patamar 0">
+                </div>
+            </div>
+            <div class="form-group" style="background: #2f3136; padding: 8px; border-radius: 4px; border-left: 3px solid var(--accent-azul);">
+                <label>Defesa (Afeta Barreiras e RD)</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="stepper" style="flex: 1;"><button type="button" class="btn-stepper" onclick="alterarAnomalia('anomalia-defesa', -1)">-</button><input type="number" id="anomalia-defesa" value="0" min="-1" max="5"><button type="button" class="btn-stepper" onclick="alterarAnomalia('anomalia-defesa', 1)">+</button></div>
+                    <input type="text" id="visor-defesa" class="anomalia-indicador" readonly value="Patamar 0">
+                </div>
+            </div>
+            <div class="form-group" style="background: #2f3136; padding: 8px; border-radius: 4px; border-left: 3px solid var(--accent-verde);">
+                <label>Alcance (Afeta Área de Efeito)</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="stepper" style="flex: 1;"><button type="button" class="btn-stepper" onclick="alterarAnomalia('anomalia-alcance', -1)">-</button><input type="number" id="anomalia-alcance" value="0" min="-1" max="5"><button type="button" class="btn-stepper" onclick="alterarAnomalia('anomalia-alcance', 1)">+</button></div>
+                    <input type="text" id="visor-alcance" class="anomalia-indicador" readonly value="Patamar 0">
+                </div>
+            </div>
+            <div class="form-group" style="background: #2f3136; padding: 8px; border-radius: 4px; border-left: 3px solid var(--accent-amarelo);">
+                <label>Velocidade (Afeta quantidade de golpes magicos+)</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="stepper" style="flex: 1;"><button type="button" class="btn-stepper" onclick="alterarAnomalia('anomalia-velocidade', -1)">-</button><input type="number" id="anomalia-velocidade" value="0" min="-1" max="5"><button type="button" class="btn-stepper" onclick="alterarAnomalia('anomalia-velocidade', 1)">+</button></div>
+                    <input type="text" id="visor-velocidade" class="anomalia-indicador" readonly value="Patamar 0">
+                </div>
+            </div>
+            <div class="form-group" style="background: #2f3136; padding: 8px; border-radius: 4px; border-left: 3px solid var(--accent-roxo);">
+                <label>Precisão (Afeta Margem de DT)</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="stepper" style="flex: 1;"><button type="button" class="btn-stepper" onclick="alterarAnomalia('anomalia-precisao', -1)">-</button><input type="number" id="anomalia-precisao" value="0" min="-1" max="5"><button type="button" class="btn-stepper" onclick="alterarAnomalia('anomalia-precisao', 1)">+</button></div>
+                    <input type="text" id="visor-precisao" class="anomalia-indicador" readonly value="Patamar 0">
+                </div>
+            </div>
+        </div>
+
+        <h4>Status de Combate</h4>
+        <div class="status-container">
+            <div class="form-group"><label>PV Atual</label><div class="stepper"><button type="button" class="btn-stepper" onclick="alterarValor('stat-pvs-atual', -1)">-</button><input type="number" id="stat-pvs-atual" value="0"><button type="button" class="btn-stepper" onclick="alterarValor('stat-pvs-atual', 1)">+</button></div></div>
+            <div class="form-group"><label>PV Máximo</label><div class="stepper" style="background: rgba(0,0,0,0.15);"><input type="number" id="stat-pvs-max" value="0" readonly style="cursor: not-allowed; color: var(--texto-mutado);"></div></div>
+            
+            <div class="form-group"><label>PE Atual</label><div class="stepper"><button type="button" class="btn-stepper" onclick="alterarValor('stat-pes-atual', -1)">-</button><input type="number" id="stat-pes-atual" value="0"><button type="button" class="btn-stepper" onclick="alterarValor('stat-pes-atual', 1)">+</button></div></div>
+            <div class="form-group"><label>PE Máximo</label><div class="stepper" style="background: rgba(0,0,0,0.15);"><input type="number" id="stat-pes-max" value="0" readonly style="cursor: not-allowed; color: var(--texto-mutado);"></div></div>
+            
+            <div class="form-group"><label>SAN Atual</label><div class="stepper"><button type="button" class="btn-stepper" onclick="alterarValor('stat-san-atual', -1)">-</button><input type="number" id="stat-san-atual" value="0"><button type="button" class="btn-stepper" onclick="alterarValor('stat-san-atual', 1)">+</button></div></div>
+            <div class="form-group"><label>SAN Máxima</label><div class="stepper" style="background: rgba(0,0,0,0.15);"><input type="number" id="stat-san-max" value="0" readonly style="cursor: not-allowed; color: var(--texto-mutado);"></div></div>
+
+            <div class="form-group"><label>Machucado</label><div class="stepper" style="background: rgba(0,0,0,0.15);"><input type="number" id="stat-machucado" value="0" readonly style="cursor: not-allowed; color: var(--accent-vermelho);"></div></div>
+            <div class="form-group"><label>DEF Natural (Máx: 27)</label><div class="stepper"><button type="button" class="btn-stepper" onclick="alterarValor('stat-defesa', -1)">-</button><input type="number" id="stat-defesa" value="0"><button type="button" class="btn-stepper" onclick="alterarValor('stat-defesa', 1)">+</button></div></div>
+            <div class="form-group"><label>Esquiva (Máx: 30)</label><div class="stepper"><button type="button" class="btn-stepper" onclick="alterarValor('stat-esquiva', -1)">-</button><input type="number" id="stat-esquiva" value="0"><button type="button" class="btn-stepper" onclick="alterarValor('stat-esquiva', 1)">+</button></div></div>
+            <div class="form-group"><label>Bloqueio (Máx: 14)</label><div class="stepper"><button type="button" class="btn-stepper" onclick="alterarValor('stat-bloqueio', -1)">-</button><input type="number" id="stat-bloqueio" value="0"><button type="button" class="btn-stepper" onclick="alterarValor('stat-bloqueio', 1)">+</button></div></div>
+            <div class="form-group"><label>Movimento (Máx: 16)</label><div class="stepper"><button type="button" class="btn-stepper" onclick="alterarValor('stat-movimento', -1)">-</button><input type="number" id="stat-movimento" value="0"><button type="button" class="btn-stepper" onclick="alterarValor('stat-movimento', 1)">+</button></div></div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="mudarAbaSecundaria('definicoes')" id="btn-tab-definicoes">Definições</button>
+            <button class="tab-btn" onclick="mudarAbaSecundaria('pericias')" id="btn-tab-pericias">Perícias</button>
+        </div>
+
+        <div id="tab-definicoes" class="tab-content active">
+            <div class="texto-medio-container">
+                <div class="form-group"><label>Resistências</label><textarea id="text-resistencias" rows="3" placeholder="Insira as resistências..."></textarea></div>
+                <div class="form-group"><label>Habilidades</label><textarea id="text-habilidades" rows="4" placeholder="Insira as habilidades..."></textarea></div>
+            </div>
+        </div>
+
+        <div id="tab-pericias" class="tab-content">
+            <h4 style="margin-top: 0;">
+                Distribuição de Perícias
+                <span id="visor-pericias" style="font-size: 11px; color: var(--accent-verde);">Selecione uma classe</span>
+            </h4>
+            
+            <div class="form-group" style="background: #2f3136; padding: 8px; border-radius: 4px; border-left: 3px solid var(--accent-roxo); margin-bottom: 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+                <label style="margin: 0;">Modificador do Mestre (Perícias Extras)</label>
+                <div class="stepper" style="width: 100px;">
+                    <button type="button" class="btn-stepper" onclick="alterarValor('mod-pericias', -1)">-</button>
+                    <input type="number" id="mod-pericias" value="0" readonly>
+                    <button type="button" class="btn-stepper" onclick="alterarValor('mod-pericias', 1)">+</button>
+                </div>
+            </div>
+
+            <div class="pericias-container" id="pericias-box"></div>
+        </div>
+    </div>
+
+    <!-- Aba de Inventário -->
+    <div id="main-inventario" class="main-tab-content">
+        <h4>Espaços do Inventário</h4>
+        <div class="inventario-container" id="inventario-box"></div>
+    </div>
+
+    <div class="actions">
+        <button class="btn-acao" onclick="exportarFicha()">📥 Fazer Backup Local (Download)</button>
+        <button class="btn-acao btn-upload" onclick="document.getElementById('file-input').click()">📤 Restaurar Backup (Upload)</button>
+        <button class="btn-acao btn-danger" onclick="reiniciarFicha(false)">🗑️ Reiniciar Todos os Valores</button>
+        <input type="file" id="file-input" accept=".json" onchange="importarFicha(event)">
+    </div>
+    
+    <div id="save-msg" class="save-indicator">Sincronizado na sala...</div>
+
+    <script type="module">
+        import OBR from "https://unpkg.com/@owlbear-rodeo/sdk@3.1.0";
+
+        const CHAVE_SALVAMENTO = "ficha_rpg_dados_v1";
+        const METADATA_PREFIX = "veurpg/ficha-"; 
+
+        let isGM = false;
+        let myPlayerId = "";
+        let currentViewId = ""; 
+        let lockUpdate = false; 
+
+        const listaPericiasNomes = [
+            "ACROBACIA", "ATUALIDADES", "ENGANAÇÃO", "INTIMIDAÇÃO", "MEDICINA", "PONTARIA", 
+            "SOBREVIVÊNCIA", "ADESTRAMENTO", "CIÊNCIAS", "FORTITUDE", "INTUIÇÃO", "OCULTISMO", 
+            "PROFISSÃO", "TÁTICA", "ARTES", "CRIME", "FURTIVIDADE", "INVESTIGAÇÃO", 
+            "PERCEPÇÃO", "REFLEXOS", "TECNOLOGIA", "ATLETISMO", "DIPLOMACIA", "INICIATIVA", 
+            "LUTA", "PILOTAGEM", "RELIGIÃO", "VONTADE"
+        ];
+
+        // INICIALIZAÇÃO E IDENTIFICAÇÃO DO MESTRE
+        try {
+            if (typeof OBR !== 'undefined') {
+                OBR.onReady(async () => {
+                    console.log("Owlbear Rodeo SDK conectado.");
+
+                    try {
+                        const role = await OBR.player.getRole();
+                        isGM = (role === "GM");
+                    } catch (e) {
+                        console.error("Não foi possível obter o papel do jogador (getRole)", e);
+                        isGM = false;
+                    }
+
+                    if (isGM) {
+                        document.getElementById('gm-panel').style.display = 'block';
+                        const btnDashboard = document.getElementById('btn-main-dashboard');
+                        if (btnDashboard) btnDashboard.style.display = 'block';
+
+                        mudarAbaPrincipal('dashboard');
+                    }
+
+                    try {
+                        myPlayerId = await OBR.player.getUserId();
+                    } catch (e) {
+                        console.warn("getUserId indisponível, usando player.id como alternativa", e);
+                    }
+                    if (!myPlayerId) myPlayerId = OBR.player.id;
+                    currentViewId = myPlayerId;
+
+                    try {
+                        const metadata = await OBR.room.getMetadata();
+                        processarMetadados(metadata, true);
+
+                        if (isGM) {
+                            atualizarListaJogadoresGM(metadata);
+                            renderizarDashboardGM(metadata);
+                        }
+
+                        OBR.room.onMetadataChange((newMetadata) => {
+                            processarMetadados(newMetadata, false);
+                            if (isGM) {
+                                atualizarListaJogadoresGM(newMetadata);
+                                renderizarDashboardGM(newMetadata);
+                            }
+                        });
+                    } catch (e) {
+                        console.error("Erro ao sincronizar metadata da sala", e);
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Erro ao iniciar OBR SDK", e);
+        }
+
+        function processarMetadados(metadata, isInitialLoad) {
+            const myData = metadata[METADATA_PREFIX + currentViewId];
+            if (myData) {
+                preencherFichaComDados(myData);
+            } else if (isInitialLoad) {
+                carregarDadosLocais();
+                if (currentViewId === myPlayerId) {
+                    salvarDadosLocais();
+                }
+            }
+        }
+
+        // FUNÇÕES DO DASHBOARD DO MESTRE
+        function renderizarDashboardGM(metadata) {
+            const grid = document.getElementById('gm-dashboard-grid');
+            if (!grid) return;
+            
+            grid.innerHTML = ''; 
+
+            let encontrouAlguem = false;
+
+            for (const key in metadata) {
+                if (key.startsWith(METADATA_PREFIX)) {
+                    encontrouAlguem = true;
+                    const ficha = metadata[key];
+                    const nome = ficha.nome || "Desconhecido";
+                    
+                    const pv = ficha.status?.pvs_atual ?? 0;
+                    const pvMax = ficha.status?.pvs_max ?? 0;
+                    const pe = ficha.status?.pes_atual ?? 0;
+                    const peMax = ficha.status?.pes_max ?? 0;
+                    const san = ficha.status?.san_atual ?? 0;
+                    const sanMax = ficha.status?.san_max ?? 0;
+                    const def = ficha.status?.defesa ?? 0;
+                    const esquiva = ficha.status?.esquiva ?? 0;
+
+                    const card = document.createElement('div');
+                    card.className = 'gm-card';
+                    card.innerHTML = `
+                        <div class="gm-card-header">${nome}</div>
+                        <div class="gm-card-stats">
+                            <div class="gm-stat-row">
+                                <span style="color: var(--texto-mutado);">PV:</span> 
+                                <span style="color: var(--accent-vermelho); font-weight: bold;">${pv} / ${pvMax}</span>
+                            </div>
+                            <div class="gm-stat-row">
+                                <span style="color: var(--texto-mutado);">PE:</span> 
+                                <span style="color: var(--accent-azul); font-weight: bold;">${pe} / ${peMax}</span>
+                            </div>
+                            <div class="gm-stat-row">
+                                <span style="color: var(--texto-mutado);">SAN:</span> 
+                                <span style="color: var(--accent-amarelo); font-weight: bold;">${san} / ${sanMax}</span>
+                            </div>
+                            <div class="gm-stat-row">
+                                <span style="color: var(--texto-mutado);">DEF/ESQ:</span> 
+                                <span style="color: white; font-weight: bold;">${def} / ${esquiva}</span>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                }
+            }
+
+            if (!encontrouAlguem) {
+                grid.innerHTML = '<p style="color: var(--texto-mutado); font-size: 12px; text-align: center;">Nenhuma ficha conectada à sala ainda.</p>';
+            }
+        }
+
+        async function atualizarListaJogadoresGM(metadata) {
+            if (!metadata) metadata = await OBR.room.getMetadata();
+            const select = document.getElementById('gm-player-select');
+            if(!select) return;
+
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">-- Sua Própria Ficha --</option>';
+            
+            for (const key in metadata) {
+                if (key.startsWith(METADATA_PREFIX)) {
+                    const id = key.replace(METADATA_PREFIX, '');
+                    const ficha = metadata[key];
+                    const nomeChar = ficha.nome || "Desconhecido";
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = nomeChar + (id === myPlayerId ? " (Você)" : "");
+                    select.appendChild(option);
+                }
+            }
+            select.value = currentValue; 
+        }
+
+        function gmSelecionarJogador() {
+            const select = document.getElementById('gm-player-select');
+            currentViewId = select.value || myPlayerId;
+            
+            OBR.room.getMetadata().then(metadata => {
+                const data = metadata[METADATA_PREFIX + currentViewId];
+                if (data) {
+                    preencherFichaComDados(data);
+                } else {
+                    reiniciarFicha(true); 
+                }
+            });
+        }
+
+        // FUNÇÕES ORIGINAIS DA FICHA (Mecânicas de UI)
+        function mudarAbaPrincipal(aba) {
+            document.querySelectorAll('.main-tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.main-tab-btn').forEach(el => el.classList.remove('active'));
+
+            if (aba === 'principal') {
+                document.getElementById('main-principal').classList.add('active');
+                document.getElementById('btn-main-principal').classList.add('active');
+            } else if (aba === 'inventario') {
+                document.getElementById('main-inventario').classList.add('active');
+                document.getElementById('btn-main-inventario').classList.add('active');
+            } else if (aba === 'dashboard') {
+                const painelMestre = document.getElementById('main-dashboard');
+                const btnMestre = document.getElementById('btn-main-dashboard');
+                if(painelMestre) painelMestre.classList.add('active');
+                if(btnMestre) btnMestre.classList.add('active');
+            }
+        }
+
+        function mudarAbaSecundaria(aba) {
+            document.getElementById('tab-definicoes').classList.remove('active');
+            document.getElementById('tab-pericias').classList.remove('active');
+            document.getElementById('btn-tab-definicoes').classList.remove('active');
+            document.getElementById('btn-tab-pericias').classList.remove('active');
+
+            if (aba === 'definicoes') {
+                document.getElementById('tab-definicoes').classList.add('active');
+                document.getElementById('btn-tab-definicoes').classList.add('active');
+            } else {
+                document.getElementById('tab-pericias').classList.add('active');
+                document.getElementById('btn-tab-pericias').classList.add('active');
+            }
+        }
+
+        function atualizarMachucado() {
+            const pvsMax = parseInt(document.getElementById('stat-pvs-max').value) || 0;
+            document.getElementById('stat-machucado').value = Math.floor(pvsMax / 2);
+        }
+
+        function calcularPontosTotais() {
+            const nivel = parseInt(document.getElementById('char-nivel').value) || 1;
+            const idade = parseInt(document.getElementById('char-idade').value) || 0;
+            let pontosTotais = Math.floor(Math.pow(nivel, 1.5) + 9);
+            
+            if (idade > 0 && idade < 16) {
+                pontosTotais = Math.floor(pontosTotais / 2);
+            }
+
+            const atributosBase = ['vigor', 'forca', 'agilidade', 'intelecto', 'presenca'];
+            const atributosAnomalos = ['poder', 'defesa', 'alcance', 'velocidade', 'precisao'];
+            let pontosGastos = 0;
+            
+            atributosBase.forEach(attr => { pontosGastos += parseInt(document.getElementById(`attr-${attr}`).value) || 0; });
+            atributosAnomalos.forEach(attr => { pontosGastos += parseInt(document.getElementById(`anomalia-${attr}`).value) || 0; });
+            
+            const restantes = pontosTotais - pontosGastos;
+            const visorPontos = document.getElementById('visor-pontos');
+            if (visorPontos) {
+                visorPontos.innerText = `Pontos: ${restantes} / ${pontosTotais}`;
+                if(restantes < 0) visorPontos.style.color = 'var(--accent-vermelho)';
+                else if (restantes === 0) visorPontos.style.color = 'var(--texto-mutado)';
+                else visorPontos.style.color = 'var(--accent-verde)';
+            }
+        }
+        
+        function calcularPontosPericias() {
+            const classe = document.getElementById('char-classe').value.toLowerCase();
+            const idade = parseInt(document.getElementById('char-idade').value) || 0;
+            let limitePericias = 0;
+            
+            if (classe === "brutalista") limitePericias = 6;
+            else if (classe === "vorpal") limitePericias = 8;
+            else if (classe === "intelectual") limitePericias = 10;
+
+            const intelecto = parseInt(document.getElementById('attr-intelecto').value) || 0;
+            const modMestre = parseInt(document.getElementById('mod-pericias').value) || 0;
+
+            if (classe) {
+                limitePericias += intelecto;
+                limitePericias += modMestre;
+            }
+
+            limitePericias = Math.max(0, limitePericias); 
+            let pontosTotais = limitePericias * 5;
+            
+            if (idade > 0 && idade < 16) {
+                pontosTotais = Math.floor(pontosTotais / 2);
+            }
+
+            let pontosGastos = 0;
+            
+            document.querySelectorAll('.pericia-item input').forEach(input => {
+                pontosGastos += parseInt(input.value) || 0;
+            });
+            
+            const restantes = pontosTotais - pontosGastos;
+            const visor = document.getElementById('visor-pericias');
+            
+            if (visor) {
+                if (!classe) {
+                    visor.innerText = `Selecione uma Classe`;
+                    visor.style.color = 'var(--texto-mutado)';
+                } else {
+                    visor.innerText = `Pontos: ${restantes} / ${pontosTotais}`;
+                    if (restantes < 0) visor.style.color = 'var(--accent-vermelho)';
+                    else if (restantes === 0) visor.style.color = 'var(--texto-mutado)';
+                    else visor.style.color = 'var(--accent-verde)';
+                }
+            }
+        }
+
+        function atualizarStatusClasse() {
+            const classe = document.getElementById('char-classe').value.toLowerCase();
+            const vigor = parseInt(document.getElementById('attr-vigor').value) || 0;
+            const presenca = parseInt(document.getElementById('attr-presenca').value) || 0;
+            const poderAnomalo = parseInt(document.getElementById('anomalia-poder').value) || 0;
+            const defesaAnomala = parseInt(document.getElementById('anomalia-defesa').value) || 0;
+            const idade = parseInt(document.getElementById('char-idade').value) || 0;
+
+            if (!classe) return; 
+
+            let pvmax = 0, pemax = 0, san = 0;
+            const adicionalPE = poderAnomalo * 5;
+            const bonusBarreira = 10 + (defesaAnomala * 5);
+
+            if (classe === "brutalista") {
+                pvmax = 10 + (vigor * 7) + bonusBarreira;
+                pemax = 5 + (presenca * 2) + adicionalPE;
+                san = 75;
+            } else if (classe === "vorpal") {
+                pvmax = 12 + (vigor * 4) + bonusBarreira;
+                pemax = 8 + (presenca * 4) + adicionalPE;
+                san = 85;
+            } else if (classe === "intelectual") {
+                pvmax = 12 + (vigor * 2) + bonusBarreira;
+                pemax = 8 + (presenca * 6) + adicionalPE;
+                san = 100;
+            }
+            
+            if (idade > 0 && idade < 16) {
+                pvmax = Math.floor(pvmax / 2);
+                pemax = Math.floor(pemax / 2);
+            }
+
+            const pvMaxInput = document.getElementById('stat-pvs-max');
+            const peMaxInput = document.getElementById('stat-pes-max');
+            const sanMaxInput = document.getElementById('stat-san-max');
+
+            const pvAtualInput = document.getElementById('stat-pvs-atual');
+            const peAtualInput = document.getElementById('stat-pes-atual');
+            const sanAtualInput = document.getElementById('stat-san-atual');
+
+            if (parseInt(pvAtualInput.value) === 0 || pvAtualInput.value === "") pvAtualInput.value = pvmax;
+            if (parseInt(peAtualInput.value) === 0 || peAtualInput.value === "") peAtualInput.value = pemax;
+            if (parseInt(sanAtualInput.value) === 0 || sanAtualInput.value === "") sanAtualInput.value = san;
+
+            pvMaxInput.value = pvmax;
+            peMaxInput.value = pemax;
+            sanMaxInput.value = san;
+
+            pvAtualInput.value = Math.max(0, Math.min(parseInt(pvAtualInput.value) || 0, pvmax));
+            peAtualInput.value = Math.max(0, Math.min(parseInt(peAtualInput.value) || 0, pemax));
+            sanAtualInput.value = Math.max(0, Math.min(parseInt(sanAtualInput.value) || 0, san));
+            
+            atualizarMachucado();
+            calcularPontosPericias(); 
+            salvarDadosLocais();
+        }
+
+        function attrVigorMudou(qtd) { alterarValor('attr-vigor', qtd); }
+        function attrPresencaMudou(qtd) { alterarValor('attr-presenca', qtd); }
+
+        function alterarValor(idElemento, quantidade) {
+            const input = document.getElementById(idElemento);
+            let novoValor = (parseInt(input.value) || 0) + quantidade;
+
+            if (idElemento === 'stat-pvs-atual') novoValor = Math.max(0, Math.min(novoValor, parseInt(document.getElementById('stat-pvs-max').value) || 0));
+            if (idElemento === 'stat-pes-atual') novoValor = Math.max(0, Math.min(novoValor, parseInt(document.getElementById('stat-pes-max').value) || 0));
+            if (idElemento === 'stat-san-atual') novoValor = Math.max(0, Math.min(novoValor, parseInt(document.getElementById('stat-san-max').value) || 0));
+            if (idElemento === 'char-nivel') novoValor = Math.max(1, Math.min(novoValor, 8));
+            if (idElemento === 'stat-defesa') novoValor = Math.max(0, Math.min(novoValor, 27));
+            if (idElemento === 'stat-esquiva') novoValor = Math.max(0, Math.min(novoValor, 30));
+            if (idElemento === 'stat-bloqueio') novoValor = Math.max(0, Math.min(novoValor, 14));
+            if (idElemento === 'stat-movimento') novoValor = Math.max(0, Math.min(novoValor, 16));
+
+            if (!['stat-defesa', 'stat-esquiva', 'stat-bloqueio', 'stat-movimento', 'stat-pvs-atual', 'stat-pes-atual', 'stat-san-atual', 'char-nivel', 'mod-pericias'].includes(idElemento)) {
+                novoValor = Math.max(0, novoValor);
+            }
+
+            input.value = novoValor;
+            
+            if (idElemento === 'attr-vigor' || idElemento === 'attr-presenca' || idElemento === 'char-idade') atualizarStatusClasse();
+            if (idElemento === 'attr-forca') atualizarEspacosInventario();
+            if (idElemento === 'attr-intelecto' || idElemento === 'mod-pericias' || idElemento === 'char-idade') calcularPontosPericias();
+            if (idElemento === 'char-nivel' || idElemento === 'char-idade') calcularPontosTotais();
+            
+            salvarDadosLocais(); 
+        }
+
+        function alterarAnomalia(idElemento, quantidade) {
+            const input = document.getElementById(idElemento);
+            let novoValor = Math.max(-1, Math.min((parseInt(input.value) || 0) + quantidade, 5));
+            input.value = novoValor;
+            atualizarVisoresAnomalia();
+            calcularPontosTotais();
+            
+            if (idElemento === 'anomalia-poder' || idElemento === 'anomalia-defesa') atualizarStatusClasse();
+            else salvarDadosLocais();
+        }
+
+       function atualizarVisoresAnomalia() {
+            const valPoder = parseInt(document.getElementById(`anomalia-poder`).value) || 0;
+            const visorPoder = document.getElementById(`visor-poder`);
+            if (valPoder < 0) visorPoder.value = `Patamar 1D4 (Atrófico)`;
+            else if (valPoder === 0) visorPoder.value = `Patamar D6 (Base)`;
+            else if (valPoder === 1) visorPoder.value = `Patamar D6+2 (Amplificado)`;
+            else if (valPoder === 2) visorPoder.value = `Patamar D8+3 (Amplificado)`;
+            else if (valPoder === 3) visorPoder.value = `Patamar D10+5 (Amplificado)`;
+            else if (valPoder === 4) visorPoder.value = `Patamar D12+6 (Amplificado)`;
+            else visorPoder.value = `Patamar 2D12+8 (Sobrecarga)`;
+
+            const valDefesa = parseInt(document.getElementById(`anomalia-defesa`).value) || 0;
+            const visorDefesa = document.getElementById(`visor-defesa`);
+            if (valDefesa < 0) visorDefesa.value = `Barreira: 5 PV / RD 0 (Atrófico)`;
+            else if (valDefesa === 0) visorDefesa.value = `Barreira: 10 PV / RD 0 (Base)`;
+            else if (valDefesa === 1) visorDefesa.value = `Barreira: 15 PV / RD 1 (Amplificado)`;
+            else if (valDefesa === 2) visorDefesa.value = `Barreira: 20 PV / RD 1 (Amplificado)`;
+            else if (valDefesa === 3) visorDefesa.value = `Barreira: 25 PV / RD 2 (Amplificado)`;
+            else if (valDefesa === 4) visorDefesa.value = `Barreira: 30 PV / RD 3 (Amplificado)`;
+            else visorDefesa.value = `Barreira: 35 PV / RD 4 (Sobrecarga)`;
+
+            const valAlcance = parseInt(document.getElementById(`anomalia-alcance`).value) || 0;
+            const visorAlcance = document.getElementById(`visor-alcance`);
+            if (valAlcance < 0) visorAlcance.value = `Alcance: Pessoal`;
+            else if (valAlcance === 0) visorAlcance.value = `Alcance: minimo 3m / Área 1x1`;
+            else if (valAlcance === 1) visorAlcance.value = `Alcance: Curto 6m / Área 2x2`;
+            else if (valAlcance === 2) visorAlcance.value = `Alcance: Médio 9m / Área 3x3`;
+            else if (valAlcance === 3) visorAlcance.value = `Alcance: Longo 12m / Área 4x4`;
+            else if (valAlcance === 4) visorAlcance.value = `Alcance: Extremo 15m / Área 5x5`;
+            else visorAlcance.value = `Alcance: Campo Visual 20m/ Área 6x6`;
+
+            const valVelocidade = parseInt(document.getElementById(`anomalia-velocidade`).value) || 0;
+            const visorVelocidade = document.getElementById(`visor-velocidade`);
+            if (valVelocidade < 0) visorVelocidade.value = `-1D dano (Atrófico)`;
+            else if (valVelocidade === 0) visorVelocidade.value = `1D Dano (Base)`;
+            else if (valVelocidade === 1) visorVelocidade.value = `2D Dano (Amplificado)`;
+            else if (valVelocidade === 2) visorVelocidade.value = `3D Dano (Amplificado)`;
+            else if (valVelocidade === 3) visorVelocidade.value = `4D Dano (Amplificado)`;
+            else if (valVelocidade === 4) visorVelocidade.value = `5D Dano (Amplificado)`;
+            else visorVelocidade.value = `6D Dano (Sobrecarga)`;
+
+            const valPrecisao = parseInt(document.getElementById(`anomalia-precisao`).value) || 0;
+            const visorPrecisao = document.getElementById(`visor-precisao`);
+            if (valPrecisao < 0) visorPrecisao.value = `-1D rolagem / DT -2 (Atrófico)`;
+            else if (valPrecisao === 0) visorPrecisao.value = `1D rolagem / DT Base`;
+            else if (valPrecisao === 1) visorPrecisao.value = `2D rolagem / DT +1 (Amplificado)`;
+            else if (valPrecisao === 2) visorPrecisao.value = `3D rolagem / DT +2 (Amplificado)`;
+            else if (valPrecisao === 3) visorPrecisao.value = `4D rolagem / DT +3 (Amplificado)`;
+            else if (valPrecisao === 4) visorPrecisao.value = `5D rolagem / DT +4 (Amplificado)`;
+            else visorPrecisao.value = `6D rolagem / DT +5 (Sobrecarga)`;
+        }
+
+        function alterarPericia(btn, quantidade) {
+            const input = btn.parentElement.querySelector('input');
+            let novoValor = (parseInt(input.value) || 0) + quantidade;
+            novoValor = Math.max(0, Math.min(novoValor, 15)); 
+            input.value = novoValor;
+            ordenarPericias();
+            calcularPontosPericias();
+            salvarDadosLocais(); 
+        }
+
+        function alterarValorInv(idElemento, quantidade) {
+            const input = document.getElementById(idElemento);
+            input.value = Math.max(0, (parseInt(input.value) || 0) + quantidade);
+            salvarDadosLocais();
+        }
+
+        function obterCorVerde(valor) {
+            if (valor <= 0) return '#2f3136';
+            const percentual = Math.min(valor / 20, 1);
+            const r = Math.round(47 + (67 - 47) * percentual);
+            const g = Math.round(49 + (181 - 49) * percentual);
+            const b = Math.round(54 + (129 - 54) * percentual);
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // SALVAMENTO HÍBRIDO (LOCAL + SALA OWLBEAR)
+        function salvarDadosLocais() {
+            if (lockUpdate) return; 
+
+            const dadosFicha = {
+                nome: document.getElementById('char-nome').value,
+                classe: document.getElementById('char-classe').value,
+                nivel: document.getElementById('char-nivel').value,
+                idade: document.getElementById('char-idade').value,
+                tamanho: document.getElementById('char-tamanho').value,
+                vinculo: document.getElementById('char-vinculo').value,
+                atributos: {
+                    vigor: document.getElementById('attr-vigor').value,
+                    forca: document.getElementById('attr-forca').value,
+                    agilidade: document.getElementById('attr-agilidade').value,
+                    intelecto: document.getElementById('attr-intelecto').value,
+                    presenca: document.getElementById('attr-presenca').value,
+                },
+                status: {
+                    pvs_atual: document.getElementById('stat-pvs-atual').value,
+                    pvs_max: document.getElementById('stat-pvs-max').value,
+                    pes_atual: document.getElementById('stat-pes-atual').value,
+                    pes_max: document.getElementById('stat-pes-max').value,
+                    san_atual: document.getElementById('stat-san-atual').value,
+                    san_max: document.getElementById('stat-san-max').value,
+                    defesa: document.getElementById('stat-defesa').value,
+                    esquiva: document.getElementById('stat-esquiva').value,
+                    bloqueio: document.getElementById('stat-bloqueio').value,
+                    movimento: document.getElementById('stat-movimento').value,
+                    mod_pericias: document.getElementById('mod-pericias').value
+                },
+                anomalias: {
+                    poder: document.getElementById('anomalia-poder').value,
+                    defesa: document.getElementById('anomalia-defesa').value,
+                    alcance: document.getElementById('anomalia-alcance').value,
+                    velocidade: document.getElementById('anomalia-velocidade').value,
+                    precisao: document.getElementById('anomalia-precisao').value
+                },
+                textos: {
+                    resistencias: document.getElementById('text-resistencias').value,
+                    habilidades: document.getElementById('text-habilidades').value
+                },
+                pericias: {},
+                inventario: []
+            };
+
+            document.querySelectorAll('.pericia-item').forEach(item => {
+                const nome = item.dataset.nome;
+                dadosFicha.pericias[nome] = parseInt(item.querySelector('input').value) || 0;
+            });
+
+            document.querySelectorAll('.inventario-item').forEach((item, index) => {
+                const i = index + 1;
+                const elNome = document.getElementById(`inv-nome-${i}`);
+                const elVal = document.getElementById(`inv-val-${i}`);
+                if (elNome && elVal) dadosFicha.inventario.push({ nome: elNome.value, valor: elVal.value });
+            });
+
+            // Backup Local Tradicional
+            localStorage.setItem(CHAVE_SALVAMENTO, JSON.stringify(dadosFicha));
+
+            // Sincronização em tempo real na sala Owlbear
+            if (typeof OBR !== 'undefined' && currentViewId) {
+                OBR.room.setMetadata({
+                    [METADATA_PREFIX + currentViewId]: dadosFicha
+                });
+            }
+
+            mostrarAvisoSalvo();
+        }
+
+        function carregarDadosLocais() {
+            const salvo = localStorage.getItem(CHAVE_SALVAMENTO);
+            if (salvo) {
+                try { preencherFichaComDados(JSON.parse(salvo)); } 
+                catch (e) { console.error("Erro ao ler dados salvos localmente."); }
+            }
+        }
+
+        let timeoutAviso;
+        function mostrarAvisoSalvo() {
+            const msg = document.getElementById('save-msg');
+            msg.style.opacity = 1;
+            clearTimeout(timeoutAviso);
+            timeoutAviso = setTimeout(() => { msg.style.opacity = 0; }, 1500);
+        }
+
+        document.body.addEventListener('input', (event) => {
+            if (lockUpdate) return;
+            const id = event.target.id;
+            
+            if (id === 'stat-pvs-atual' || id === 'stat-pes-atual' || id === 'stat-san-atual') {
+                const maxVal = parseInt(document.getElementById(id.replace('-atual', '-max')).value) || 0;
+                let val = Math.max(0, Math.min(parseInt(event.target.value) || 0, maxVal));
+                event.target.value = val;
+            }
+
+            if (id === 'stat-defesa' || id === 'stat-esquiva' || id === 'stat-bloqueio' || id === 'stat-movimento' || id === 'char-nivel') {
+                let maxVal = { 'stat-defesa': 27, 'stat-esquiva': 30, 'stat-bloqueio': 14, 'stat-movimento': 16, 'char-nivel': 8 }[id];
+                let minVal = id === 'char-nivel' ? 1 : 0;
+                let val = Math.max(minVal, Math.min(parseInt(event.target.value) || minVal, maxVal));
+                event.target.value = val;
+                if(id === 'char-nivel') calcularPontosTotais();
+            }
+
+            if (id && id.startsWith('anomalia-')) {
+                let val = Math.max(-1, Math.min(parseInt(event.target.value) || 0, 5));
+                event.target.value = val;
+                atualizarVisoresAnomalia();
+                if (id === 'anomalia-poder' || id === 'anomalia-defesa') atualizarStatusClasse();
+            }
+            
+            if (event.target.closest('.pericia-stepper')) {
+                let val = parseInt(event.target.value) || 0;
+                event.target.value = Math.max(0, Math.min(val, 15)); 
+                calcularPontosPericias();
+            }
+
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
+                if (id === 'attr-forca') atualizarEspacosInventario();
+                if (id === 'char-classe' || id === 'char-idade') atualizarStatusClasse();
+                if (id && (id.startsWith('attr-') || id.startsWith('anomalia-') || id === 'char-nivel' || id === 'char-idade')) calcularPontosTotais();
+                if (id === 'attr-intelecto' || id === 'mod-pericias' || id === 'char-idade') calcularPontosPericias();
+                salvarDadosLocais();
+            }
+        });
+
+        function reiniciarFicha(silent = false) {
+            if (silent || confirm("Atenção! Você tem certeza que deseja zerar a ficha? Todos os dados serão perdidos.")) {
+                lockUpdate = true; 
+
+                ['char-nome', 'char-tamanho', 'char-vinculo', 'text-resistencias', 'text-habilidades'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('char-classe').value = '';
+                document.getElementById('char-nivel').value = '1';
+                ['char-idade', 'attr-vigor', 'attr-forca', 'attr-agilidade', 'attr-intelecto', 'attr-presenca', 'stat-pvs-atual', 'stat-pvs-max', 'stat-pes-atual', 'stat-pes-max', 'stat-san-atual', 'stat-san-max', 'stat-defesa', 'stat-esquiva', 'stat-bloqueio', 'stat-movimento', 'mod-pericias'].forEach(id => document.getElementById(id).value = '0');
+                ['anomalia-poder', 'anomalia-defesa', 'anomalia-alcance', 'anomalia-velocidade', 'anomalia-precisao'].forEach(id => document.getElementById(id).value = '0');
+                document.querySelectorAll('.pericia-item input').forEach(input => input.value = '0');
+                
+                atualizarEspacosInventario(); 
+                atualizarMachucado();
+                atualizarVisoresAnomalia();
+                calcularPontosTotais();
+                calcularPontosPericias();
+                ordenarPericias();
+                
+                lockUpdate = false;
+                
+                if (!silent) {
+                    localStorage.removeItem(CHAVE_SALVAMENTO); 
+                    salvarDadosLocais(); 
+                    alert("A ficha foi reiniciada.");
+                }
+            }
+        }
+
+        function inicializarPericias() {
+            const container = document.getElementById('pericias-box');
+            if (!container) return;
+            container.innerHTML = ''; 
+            
+            listaPericiasNomes.forEach(nome => {
+                const item = document.createElement('div');
+                item.className = 'pericia-item';
+                item.dataset.nome = nome;
+                item.innerHTML = `
+                    <label>${nome}</label>
+                    <div class="stepper pericia-stepper">
+                        <button type="button" class="btn-stepper" onclick="alterarPericia(this, -5)">-</button>
+                        <input type="number" value="0" oninput="ordenarPericias()">
+                        <button type="button" class="btn-stepper" onclick="alterarPericia(this, 5)">+</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function atualizarEspacosInventario() {
+            const container = document.getElementById('inventario-box');
+            if (!container) return;
+
+            const forca = parseInt(document.getElementById('attr-forca').value) || 0;
+            const totalEspacos = 5 + (forca * 2);
+            const dadosTemporarios = [];
+
+            container.querySelectorAll('.inventario-item').forEach(item => {
+                dadosTemporarios.push({
+                    nome: item.querySelector('input[type="text"]').value,
+                    valor: item.querySelector('input[type="number"]').value
+                });
+            });
+
+            container.innerHTML = '';
+            for(let i = 1; i <= totalEspacos; i++) {
+                const item = document.createElement('div');
+                item.className = 'inventario-item';
+                const nomeSalvo = dadosTemporarios[i-1] ? dadosTemporarios[i-1].nome : '';
+                const valorSalvo = dadosTemporarios[i-1] ? dadosTemporarios[i-1].valor : '0';
+
+                item.innerHTML = `
+                    <input type="text" id="inv-nome-${i}" placeholder="Espaço ${i}..." value="${nomeSalvo}" oninput="salvarDadosLocais()">
+                    <div class="stepper inventario-stepper">
+                        <button type="button" class="btn-stepper" onclick="alterarValorInv('inv-val-${i}', -1)">-</button>
+                        <input type="number" id="inv-val-${i}" value="${valorSalvo}" oninput="salvarDadosLocais()">
+                        <button type="button" class="btn-stepper" onclick="alterarValorInv('inv-val-${i}', 1)">+</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            }
+        }
+
+        function ordenarPericias() {
+            const container = document.getElementById('pericias-box');
+            if(!container) return;
+            const itens = Array.from(container.querySelectorAll('.pericia-item'));
+
+            itens.sort((a, b) => (parseInt(b.querySelector('input').value) || 0) - (parseInt(a.querySelector('input').value) || 0));
+            itens.forEach(item => {
+                item.style.backgroundColor = obterCorVerde(parseInt(item.querySelector('input').value) || 0);
+                container.appendChild(item);
+            });
+        }
+
+        inicializarPericias();
+        atualizarEspacosInventario();
+        carregarDadosLocais();
+        atualizarVisoresAnomalia();
+        calcularPontosTotais();
+        calcularPontosPericias();
+        ordenarPericias();
+
+        function exportarFicha() {
+            salvarDadosLocais(); 
+            const salvo = localStorage.getItem(CHAVE_SALVAMENTO);
+            if (!salvo) return;
+            const dados = JSON.parse(salvo);
+            const nomeDoArquivo = dados.nome ? `ficha_${dados.nome.toLowerCase().replace(/\s+/g, '_')}.json` : 'ficha_personagem.json';
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(salvo);
+            
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", nomeDoArquivo);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function cortarAntigoOuDef(atual, max, legado) {
+            if (atual !== undefined) return atual;
+            if (legado !== undefined) return legado;
+            return max || 0;
+        }
+
+        function importarFicha(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    preencherFichaComDados(JSON.parse(e.target.result));
+                    salvarDadosLocais(); 
+                    alert("Backup carregado com sucesso!");
+                } catch (err) { alert("Erro ao processar o arquivo."); }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; 
+        }
+
+        function preencherFichaComDados(dados) {
+            lockUpdate = true; 
+
+            if(dados.nome !== undefined) document.getElementById('char-nome').value = dados.nome;
+            if(dados.classe !== undefined) document.getElementById('char-classe').value = dados.classe;
+            if(dados.nivel !== undefined) document.getElementById('char-nivel').value = dados.nivel;
+            if(dados.idade !== undefined) document.getElementById('char-idade').value = dados.idade;
+            if(dados.tamanho !== undefined) document.getElementById('char-tamanho').value = dados.tamanho;
+            if(dados.vinculo !== undefined) document.getElementById('char-vinculo').value = dados.vinculo;
+
+            if(dados.atributos) {
+                if(dados.atributos.vigor !== undefined) document.getElementById('attr-vigor').value = dados.atributos.vigor;
+                if(dados.atributos.forca !== undefined) document.getElementById('attr-forca').value = dados.atributos.forca;
+                if(dados.atributos.agilidade !== undefined) document.getElementById('attr-agilidade').value = dados.atributos.agilidade;
+                if(dados.atributos.intelecto !== undefined) document.getElementById('attr-intelecto').value = dados.atributos.intelecto;
+                if(dados.atributos.presenca !== undefined) document.getElementById('attr-presenca').value = dados.atributos.presenca;
+            }
+
+            atualizarEspacosInventario();
+
+            if(dados.status) {
+                document.getElementById('stat-pvs-max').value = dados.status.pvs_max !== undefined ? dados.status.pvs_max : (dados.status.pvs || 0);
+                document.getElementById('stat-pes-max').value = dados.status.pes_max !== undefined ? dados.status.pes_max : (dados.status.pes || 0);
+                document.getElementById('stat-san-max').value = dados.status.san_max !== undefined ? dados.status.san_max : (dados.status.san || 0);
+
+                document.getElementById('stat-pvs-atual').value = cortarAntigoOuDef(dados.status.pvs_atual, dados.status.pvs_max, dados.status.pvs);
+                document.getElementById('stat-pes-atual').value = cortarAntigoOuDef(dados.status.pes_atual, dados.status.pes_max, dados.status.pes);
+                document.getElementById('stat-san-atual').value = cortarAntigoOuDef(dados.status.san_atual, dados.status.san_max, dados.status.san);
+
+                if(dados.status.defesa !== undefined) document.getElementById('stat-defesa').value = dados.status.defesa;
+                if(dados.status.esquiva !== undefined) document.getElementById('stat-esquiva').value = dados.status.esquiva;
+                if(dados.status.bloqueio !== undefined) document.getElementById('stat-bloqueio').value = dados.status.bloqueio;
+                if(dados.status.movimento !== undefined) document.getElementById('stat-movimento').value = dados.status.movimento;
+                if(dados.status.mod_pericias !== undefined) document.getElementById('mod-pericias').value = dados.status.mod_pericias;
+            }
+
+            if(dados.anomalias) {
+                if(dados.anomalias.poder !== undefined) document.getElementById('anomalia-poder').value = dados.anomalias.poder;
+                if(dados.anomalias.defesa !== undefined) document.getElementById('anomalia-defesa').value = dados.anomalias.defesa;
+                if(dados.anomalias.alcance !== undefined) document.getElementById('anomalia-alcance').value = dados.anomalias.alcance;
+                if(dados.anomalias.velocidade !== undefined) document.getElementById('anomalia-velocidade').value = dados.anomalias.velocidade;
+                if(dados.anomalias.precisao !== undefined) document.getElementById('anomalia-precisao').value = dados.anomalias.precisao;
+            }
+
+            if(dados.textos) {
+                if(dados.textos.resistencias !== undefined) document.getElementById('text-resistencias').value = dados.textos.resistencias;
+                if(dados.textos.habilidades !== undefined) document.getElementById('text-habilidades').value = dados.textos.habilidades;
+            }
+
+            if(dados.pericias) {
+                document.querySelectorAll('.pericia-item').forEach(item => {
+                    const nome = item.dataset.nome;
+                    if(dados.pericias[nome] !== undefined) item.querySelector('input').value = dados.pericias[nome];
+                });
+            }
+
+            if(dados.inventario && Array.isArray(dados.inventario)) {
+                dados.inventario.forEach((item, index) => {
+                    const i = index + 1;
+                    const elNome = document.getElementById(`inv-nome-${i}`);
+                    const elVal = document.getElementById(`inv-val-${i}`);
+                    if (elNome && elVal) {
+                        elNome.value = item.nome || '';
+                        elVal.value = item.valor || '0';
+                    }
+                });
+            }
+            
+            atualizarMachucado();
+            atualizarVisoresAnomalia();
+            calcularPontosTotais();
+            calcularPontosPericias();
+            ordenarPericias();
+
+            lockUpdate = false; 
+        }
+
+        Object.assign(window, {
+            alterarAnomalia,
+            alterarPericia,
+            alterarValor,
+            alterarValorInv,
+            attrPresencaMudou,
+            attrVigorMudou,
+            atualizarStatusClasse,
+            exportarFicha,
+            gmSelecionarJogador,
+            importarFicha,
+            mudarAbaPrincipal,
+            mudarAbaSecundaria,
+            ordenarPericias,
+            reiniciarFicha,
+            salvarDadosLocais,
+        });
+    </script>
+</body>
+</html>
